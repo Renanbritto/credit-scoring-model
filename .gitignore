@@ -1,0 +1,39 @@
+﻿# Ambientes Virtuais
+.venv/
+venv/
+env/
+ENV/
+
+# Python cache & bytecode
+__pycache__/
+*.py[cod]
+*.class
+*.so
+
+# Testes e Cobertura
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Linters e Ferramentas
+.ruff_cache/
+.mypy_cache/
+
+# Jupyter / IPython
+.ipynb_checkpoints
+
+# IDEs e Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# SO
+.DS_Store
+Thumbs.db
+
+# Arquivos de dados pesados temporários (preservando samples)
+data/processed/*.parquet
+data/processed/*.pkl
+!data/raw/credit_applications_sample.csv
+!data/processed/scorecard_dictionary.csv
