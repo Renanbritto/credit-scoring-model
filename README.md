@@ -1,4 +1,4 @@
-﻿# 💳 Statistical Credit Scoring & Scorecard FICO (WoE, IV, KS & Gini)
+﻿# Statistical Credit Scoring & Scorecard FICO (WoE, IV, KS & Gini)
 
 [![CI Quality & Test Pipeline](https://github.com/Renanbritto/credit-scoring-model/actions/workflows/ci.yml/badge.svg)](https://github.com/Renanbritto/credit-scoring-model/actions/workflows/ci.yml)
 [![Python Version](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue.svg)](https://www.python.org/)
@@ -12,7 +12,7 @@ Pipeline de Engenharia e Ciência de Dados para modelagem econométrica de **Ris
 
 ---
 
-## 🎯 Desafio de Negócio & Motivação
+## Desafio de Negócio & Motivação
 
 Esteiras tradicionais de concessão de crédito enfrentam dois gargalos estruturais:
 1. **Falso Positivo (Perda de Oportunidade):** Reprovar proponentes solventes ao adotar políticas de corte arbitrárias sem calibração estatística de odds, desperdiçando receita com spread líquido.
@@ -23,7 +23,7 @@ Este projeto resolve essas dores através de um **pipeline de modelagem estatís
 
 ---
 
-## 📐 Fundamentação Estatística & Econométrica
+## Fundamentação Estatística & Econométrica
 
 ### 1. Weight of Evidence (WoE)
 A transformação **Weight of Evidence** lineariza a relação entre variáveis contínuas/discretas e as *log-odds* da inadimplência, garantindo monotonicidade e estabilidade contra outliers:
@@ -90,7 +90,7 @@ Para um ponto de corte ($\text{Cut-off}$) definido:
 
 ---
 
-## 🏗️ Arquitetura do Repositório
+## Arquitetura do Repositório
 
 ```
 credit-scoring-model/
@@ -125,10 +125,10 @@ credit-scoring-model/
 
 ---
 
-## 🚀 Como Executar o Projeto
+## Como Executar o Projeto
 
 ### Pré-requisitos
-- **Python 3.11** ou **Python 3.12**
+- Python 3.11 ou Python 3.12
 - Git instalado
 
 ### 1. Clonar o repositório
@@ -171,7 +171,7 @@ O navegador abrirá automaticamente em `http://localhost:8501`.
 
 ---
 
-## 📊 Principais Resultados do Modelo
+## Principais Resultados do Modelo
 
 | Indicador Estatístico / Financeiro | Resultado Obtido | Padrão da Indústria |
 |---|---|---|
@@ -184,7 +184,7 @@ O navegador abrirá automaticamente em `http://localhost:8501`.
 
 ---
 
-## 👤 Autor
+## Autor
 
 **Renan Nocelli**  
 Analista de Dados & Especialista em Modelagem Estatística e Engenharia de Risco Financeiro.

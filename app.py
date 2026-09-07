@@ -1,7 +1,7 @@
 """
 app.py
 ======
-Dashboard Executivo Interativo de Modelagem Estatística de Risco de Crédito & Credit Scoring.
+Dashboard Executivo de Modelagem Estatística de Risco de Crédito & Credit Scoring.
 Desenvolvido por Renan Nocelli | Analista de Dados & Engenharia de Risco Financeiro.
 """
 
@@ -19,63 +19,74 @@ from src.scorecard import ScorecardModel
 from src.simulator import CreditPolicySimulator
 
 # ==============================================================================
-# CONFIGURAÇÃO DA PÁGINA & DESIGN SYSTEM (DARK EXECUTIVE THEME)
+# CONFIGURAÇÃO DA PÁGINA & DESIGN SYSTEM (MODERN MINIMALIST FINTECH THEME)
 # ==============================================================================
 st.set_page_config(
     page_title="Credit Scoring & Risco de Crédito | Renan Nocelli",
-    page_icon="💳",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
+# Paleta Moderna Desaturada (Estilo Linear / Stripe / Bloomberg Moderno)
+COLOR_GOOD = "#34d399"  # Muted Sage / Verde Suave
+COLOR_BAD = "#fb7185"  # Muted Rose / Coral Suave
+COLOR_PRIMARY = "#818cf8"  # Soft Indigo / Lavanda Profissional
+COLOR_SECONDARY = "#38bdf8"  # Slate Blue / Ciano Desaturado
+COLOR_WARNING = "#fbbf24"  # Muted Amber / Dourado Suave
+COLOR_NEUTRAL = "#94a3b8"  # Slate Grey
+
 CUSTOM_CSS = """
 <style>
-    /* Estilização Geral */
+    /* Estilização Geral e Tipografia */
     .main {
-        background-color: #0b0f19;
+        background-color: #0b0f17;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
+    
+    /* Cartões de Métricas Executivas */
     .metric-card {
-        background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 12px;
-        padding: 18px 20px;
-        box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+        background-color: #111827;
+        border: 1px solid #1f293d;
+        border-radius: 8px;
+        padding: 16px 18px;
+        transition: border-color 0.2s ease;
+    }
+    .metric-card:hover {
+        border-color: #334155;
     }
     .metric-label {
-        font-size: 0.85rem;
-        font-weight: 600;
+        font-size: 0.78rem;
+        font-weight: 500;
         color: #94a3b8;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 4px;
+        letter-spacing: 0.06em;
+        margin-bottom: 6px;
     }
     .metric-value {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #f8fafc;
-        line-height: 1.2;
+        font-size: 1.65rem;
+        font-weight: 600;
+        color: #f1f5f9;
+        line-height: 1.15;
     }
     .metric-sub {
-        font-size: 0.8rem;
-        color: #38bdf8;
+        font-size: 0.78rem;
+        color: #64748b;
         margin-top: 4px;
     }
-    .status-badge {
-        display: inline-block;
-        padding: 4px 12px;
-        border-radius: 9999px;
-        font-size: 0.75rem;
-        font-weight: 600;
+
+    /* Badges de Decisão */
+    .status-badge-container {
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 12px;
     }
-    .badge-approved {
-        background-color: rgba(16, 185, 129, 0.15);
-        color: #10b981;
-        border: 1px solid rgba(16, 185, 129, 0.3);
+    .badge-approved-container {
+        background-color: rgba(52, 211, 153, 0.08);
+        border: 1px solid rgba(52, 211, 153, 0.2);
     }
-    .badge-rejected {
-        background-color: rgba(239, 68, 68, 0.15);
-        color: #ef4444;
-        border: 1px solid rgba(239, 68, 68, 0.3);
+    .badge-rejected-container {
+        background-color: rgba(251, 113, 133, 0.08);
+        border: 1px solid rgba(251, 113, 133, 0.2);
     }
 </style>
 """
@@ -87,7 +98,6 @@ st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 # ==============================================================================
 @st.cache_resource(show_spinner="Carregando e treinando pipeline de Scorecard FICO...")
 def load_trained_system():
-    # Carrega dados
     df = generate_credit_data(n_samples=45000, seed=42)
     model = ScorecardModel(target_score=600.0, target_odds=50.0, pdo=20.0)
     model.fit(df, target_col="default")
@@ -107,30 +117,74 @@ def load_trained_system():
 df_raw, scorecard_model, perf_metrics, sim_engine = load_trained_system()
 
 
+# Função utilitária para aplicar layout moderno e sóbrio aos gráficos Plotly
+def apply_modern_layout(fig, title: str = "", height: int = 380):
+    fig.update_layout(
+        title={
+            "text": title,
+            "font": {"size": 14, "color": "#e2e8f0", "family": "sans-serif"},
+        },
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        height=height,
+        margin={"l": 40, "r": 40, "t": 50, "b": 40},
+        font={"family": "sans-serif", "color": "#94a3b8", "size": 11},
+        xaxis={
+            "gridcolor": "rgba(255, 255, 255, 0.05)",
+            "zerolinecolor": "rgba(255, 255, 255, 0.08)",
+            "tickfont": {"color": "#94a3b8"},
+        },
+        yaxis={
+            "gridcolor": "rgba(255, 255, 255, 0.05)",
+            "zerolinecolor": "rgba(255, 255, 255, 0.08)",
+            "tickfont": {"color": "#94a3b8"},
+        },
+        legend={
+            "orientation": "h",
+            "yanchor": "bottom",
+            "y": 1.02,
+            "xanchor": "right",
+            "x": 1,
+            "font": {"size": 11, "color": "#cbd5e1"},
+        },
+    )
+    return fig
+
+
 # ==============================================================================
 # BARRA LATERAL (CONTROLES DO SIMULADOR TÁTICO)
 # ==============================================================================
 with st.sidebar:
-    st.image(
-        "https://img.shields.io/badge/Model-FICO%20Scorecard-10b981?style=for-the-badge",
-        width=220,
-    )
-    st.title("🎛️ Parâmetros da Esteira")
     st.markdown(
-        "Configure as premissas da política de crédito e simule o impacto financeiro em tempo real."
+        """
+        <div style="padding: 6px 0 16px 0;">
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; font-weight: 600;">
+                Sistema de Decisão
+            </div>
+            <div style="font-size: 1.15rem; font-weight: 600; color: #f8fafc; margin-top: 2px;">
+                Parâmetros da Esteira
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
     cutoff_input = st.slider(
-        "Ponto de Corte (Cut-off)",
+        "Ponto de Corte (Cut-off Score)",
         min_value=320,
         max_value=760,
         value=540,
         step=10,
-        help="Proponentes com Score igual ou superior a esta nota serão APROVADOS.",
+        help="Proponentes com pontuação igual ou superior a este limiar serão aprovados na esteira.",
     )
 
     st.markdown("---")
-    st.subheader("💼 Premissas da Carteira")
+    st.markdown(
+        "<div style='font-size: 0.85rem; font-weight: 600; color: #cbd5e1; margin-bottom: 12px;'>Premissas da Carteira</div>",
+        unsafe_allow_html=True,
+    )
+
     vol_input = st.number_input(
         "Volume de Propostas / Mês",
         min_value=1000,
@@ -168,8 +222,15 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    st.caption(
-        "Desenvolvido por **Renan Nocelli**  \nAnalista de Dados & Modelagem Estatística"
+    st.markdown(
+        """
+        <div style="font-size: 0.75rem; color: #64748b; line-height: 1.4;">
+            <b>Renan Nocelli</b><br>
+            Modelagem Estatística & Risco de Crédito<br>
+            Portfolio: renan-nocelli.vercel.app
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
 
@@ -187,10 +248,22 @@ current_sim = sim_engine.simulate(
 # ==============================================================================
 # HEADER PRINCIPAL & BANNER EXECUTIVO
 # ==============================================================================
-st.title("💳 Modelagem de Risco de Crédito & Credit Scoring")
 st.markdown(
-    "**Pipeline Econométrico Completo:** Binning Monotônico via *Weight of Evidence* (WoE), Seleção de Atributos por "
-    "*Information Value* (IV), Regressão Logística Calibrada na Escala FICO (300-850) e Simulador Tático de Perda Esperada ($PD \\times LGD \\times EAD$)."
+    """
+    <div style="margin-bottom: 24px;">
+        <div style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #818cf8; margin-bottom: 4px;">
+            Engenharia de Risco Financeiro & Estatística Aplicada
+        </div>
+        <div style="font-size: 1.85rem; font-weight: 700; color: #f8fafc; letter-spacing: -0.02em;">
+            Modelagem de Risco de Crédito & Credit Scoring
+        </div>
+        <div style="font-size: 0.92rem; color: #94a3b8; margin-top: 6px; max-width: 900px; line-height: 1.5;">
+            Pipeline estatístico com transformação monotônica por Weight of Evidence (WoE), seleção por 
+            Information Value (IV), calibração econométrica FICO (300-850) e simulação de Perda Esperada (PD × LGD × EAD).
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
 
 # LINHA DE CARDS DE KPI (MÉTRICAS DO CORTE ATIVO)
@@ -209,11 +282,12 @@ with col1:
     )
 
 with col2:
+    color_br = COLOR_GOOD if current_sim.bad_rate_approved_pct <= 5.0 else COLOR_WARNING
     st.markdown(
         f"""
         <div class="metric-card">
             <div class="metric-label">Bad Rate da Safra</div>
-            <div class="metric-value" style="color: {"#10b981" if current_sim.bad_rate_approved_pct <= 5.0 else "#f59e0b"};">
+            <div class="metric-value" style="color: {color_br};">
                 {current_sim.bad_rate_approved_pct:.2f}%
             </div>
             <div class="metric-sub">{current_sim.bads_approved_count:,} inadimplentes previstos</div>
@@ -228,7 +302,7 @@ with col3:
         <div class="metric-card">
             <div class="metric-label">Capital Concedido</div>
             <div class="metric-value">R$ {current_sim.approved_capital_million:.2f}M</div>
-            <div class="metric-sub">Tíquete R$ {ticket_input:,.0f}</div>
+            <div class="metric-sub">Tíquete médio R$ {ticket_input:,.0f}</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -239,8 +313,8 @@ with col4:
         f"""
         <div class="metric-card">
             <div class="metric-label">Perda Esperada (EL)</div>
-            <div class="metric-value" style="color: #ef4444;">R$ {current_sim.expected_loss_million:.2f}M</div>
-            <div class="metric-sub">LGD {lgd_input:.0f}%</div>
+            <div class="metric-value" style="color: {COLOR_BAD};">R$ {current_sim.expected_loss_million:.2f}M</div>
+            <div class="metric-sub">LGD calibrada em {lgd_input:.0f}%</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -251,8 +325,8 @@ with col5:
         f"""
         <div class="metric-card">
             <div class="metric-label">Margem Líquida</div>
-            <div class="metric-value" style="color: #38bdf8;">R$ {current_sim.net_credit_margin_million:.2f}M</div>
-            <div class="metric-sub">Spread de {current_sim.net_credit_margin_pct:.1f}%</div>
+            <div class="metric-value" style="color: {COLOR_PRIMARY};">R$ {current_sim.net_credit_margin_million:.2f}M</div>
+            <div class="metric-sub">Spread líquido de {current_sim.net_credit_margin_pct:.1f}%</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -265,11 +339,11 @@ st.write("")
 # ==============================================================================
 tab_iv, tab_scorecard, tab_metrics, tab_simulator, tab_methodology = st.tabs(
     [
-        "📊 1. Matriz WoE & Information Value",
-        "🧮 2. Scorecard FICO & Avaliação Individual",
-        "📈 3. Discriminação (K-S & ROC/AUC)",
-        "🎯 4. Simulador Tático What-If (P&L)",
-        "📐 5. Metodologia & Pipeline Matemático",
+        "Matriz WoE & Information Value",
+        "Scorecard FICO & Avaliação Individual",
+        "Discriminação (K-S & ROC/AUC)",
+        "Simulador Tático What-If (P&L)",
+        "Metodologia & Pipeline Matemático",
     ]
 )
 
@@ -280,14 +354,14 @@ tab_iv, tab_scorecard, tab_metrics, tab_simulator, tab_methodology = st.tabs(
 with tab_iv:
     st.subheader("Matriz de Seleção de Atributos por Information Value (IV)")
     st.markdown(
-        "O **Information Value (IV)** quantifica a capacidade de cada variável de separar clientes adimplentes (*Goods*) "
-        "de inadimplentes (*Bads*). Variáveis com $IV > 0.10$ são selecionadas para compor o Scorecard."
+        "O Information Value (IV) avalia o poder discriminatório de cada característica na esteira de risco. "
+        "Atributos com IV superior a 0.10 são considerados elegíveis para a arquitetura do Scorecard."
     )
 
     transformer = scorecard_model.woe_transformer
     summary_iv = transformer.get_summary_table()
 
-    # Gráfico de barras horizontais do IV
+    # Gráfico de barras horizontais do IV com cores sóbrias
     fig_iv = px.bar(
         summary_iv,
         x="Information Value (IV)",
@@ -295,26 +369,22 @@ with tab_iv:
         orientation="h",
         color="Poder Preditivo",
         color_discrete_map={
-            "Forte": "#10b981",
-            "Médio": "#38bdf8",
-            "Fraco": "#f59e0b",
-            "Inútil / Desprezível": "#ef4444",
+            "Forte": COLOR_GOOD,
+            "Médio": COLOR_SECONDARY,
+            "Fraco": COLOR_WARNING,
+            "Inútil / Desprezível": COLOR_BAD,
         },
-        title="Ranking de Information Value (IV) das Características",
         text="Information Value (IV)",
     )
-    fig_iv.update_layout(
-        template="plotly_dark",
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        yaxis={"categoryorder": "total ascending"},
-        height=350,
+    apply_modern_layout(
+        fig_iv, title="Ranking de Information Value (IV) por Variável", height=320
     )
+    fig_iv.update_layout(yaxis={"categoryorder": "total ascending"})
     fig_iv.update_traces(texttemplate="%{text:.3f}", textposition="outside")
     st.plotly_chart(fig_iv, use_container_width=True)
 
     st.markdown("---")
-    st.subheader("Inspeção Monotônica por Variável")
+    st.subheader("Análise Monotônica por Variável")
 
     selected_feat = st.selectbox(
         "Selecione uma variável para inspecionar os bins e a monotonicidade do WoE:",
@@ -338,11 +408,21 @@ with tab_iv:
         fig_bins = go.Figure()
         fig_bins.add_trace(
             go.Bar(
-                name="% Dist Goods", x=bin_labels, y=goods_pct, marker_color="#10b981"
+                name="% Dist Goods",
+                x=bin_labels,
+                y=goods_pct,
+                marker_color=COLOR_GOOD,
+                opacity=0.85,
             )
         )
         fig_bins.add_trace(
-            go.Bar(name="% Dist Bads", x=bin_labels, y=bads_pct, marker_color="#ef4444")
+            go.Bar(
+                name="% Dist Bads",
+                x=bin_labels,
+                y=bads_pct,
+                marker_color=COLOR_BAD,
+                opacity=0.85,
+            )
         )
         fig_bins.add_trace(
             go.Scatter(
@@ -353,26 +433,25 @@ with tab_iv:
                 text=[f"{w:.2f}" for w in woe_vals],
                 textposition="top center",
                 yaxis="y2",
-                line={"color": "#38bdf8", "width": 3},
+                line={"color": COLOR_PRIMARY, "width": 2.5},
             )
         )
 
-        fig_bins.update_layout(
+        apply_modern_layout(
+            fig_bins,
             title=f"Distribuição & Curva WoE: {feat_data.feature_name}",
-            template="plotly_dark",
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            yaxis={"title": "% da População"},
-            yaxis2={"title": "WoE", "overlaying": "y", "side": "right"},
-            barmode="group",
-            height=380,
-            legend={
-                "orientation": "h",
-                "yanchor": "bottom",
-                "y": 1.02,
-                "xanchor": "right",
-                "x": 1,
+            height=360,
+        )
+        fig_bins.update_layout(
+            yaxis={"title": "% da População", "gridcolor": "rgba(255,255,255,0.05)"},
+            yaxis2={
+                "title": "WoE",
+                "overlaying": "y",
+                "side": "right",
+                "showgrid": False,
+                "tickfont": {"color": COLOR_PRIMARY},
             },
+            barmode="group",
         )
         st.plotly_chart(fig_bins, use_container_width=True)
 
@@ -382,23 +461,19 @@ with tab_iv:
             x=bin_labels,
             y=bad_rates,
             text=[f"{br:.1f}%" for br in bad_rates],
-            title=f"Bad Rate Empírica por Faixa: {feat_data.feature_name}",
             labels={"x": "Faixa / Bin", "y": "Bad Rate (%)"},
-            color=bad_rates,
-            color_continuous_scale="Reds",
+            color_discrete_sequence=[COLOR_SECONDARY],
         )
-        fig_br.update_layout(
-            template="plotly_dark",
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            coloraxis_showscale=False,
-            height=380,
+        apply_modern_layout(
+            fig_br,
+            title=f"Bad Rate Empírica por Faixa: {feat_data.feature_name}",
+            height=360,
         )
-        fig_br.update_traces(textposition="outside")
+        fig_br.update_traces(textposition="outside", marker={"opacity": 0.85})
         st.plotly_chart(fig_br, use_container_width=True)
 
     # Tabela detalhada de contingência
-    st.write("#### Tabela de Contingência & Contribuição para o Information Value")
+    st.markdown("#### Tabela de Contingência & Contribuição para o Information Value")
     rows = []
     for b in feat_data.bins:
         rows.append(
@@ -421,18 +496,18 @@ with tab_iv:
 # ABA 2: SCORECARD FICO & AVALIAÇÃO INDIVIDUAL
 # ==============================================================================
 with tab_scorecard:
-    st.subheader("Scorecard FICO Calibrado & Simulador de Proponente em Tempo Real")
+    st.subheader("Scorecard FICO Calibrado & Avaliação Individual de Proponente")
     st.markdown(
-        "A escala de pontuação foi calibrada pelo método econométrico FICO clássico:  \n"
-        "$$\\text{Factor} = \\frac{\\text{PDO}}{\\ln(2)} = \\frac{20}{\\ln(2)} \\approx 28.85, \\quad "
-        "\\text{Offset} = \\text{Target Score} - \\text{Factor} \\cdot \\ln(\\text{Target Odds})$$  \n"
-        "Com Score base de **600 pontos para Odds de 50:1** e **PDO de 20 pontos** (dobra a chance de adimplência a cada 20 pontos de score)."
+        "A régua de pontuação utiliza a formulação econométrica clássica FICO (300 a 850 pontos):  \n"
+        "$$\\text{Factor} = \\frac{\\text{PDO}}{\\ln(2)} \\approx 28.85, \\quad "
+        "\\text{Offset} = \\text{Target Score} - \\text{Factor} \\cdot \\ln(\\text{Target Odds}) \\approx 487.13$$  \n"
+        "Calibrada com base de 600 pontos para odds de 50:1 e PDO de 20 pontos."
     )
 
     col_sim_input, col_sim_output = st.columns([1.1, 0.9])
 
     with col_sim_input:
-        st.markdown("#### 📝 Simule um Novo Proponente")
+        st.markdown("#### Simulação de Proponente")
         with st.form("form_single_applicant"):
             dti_in = st.slider("Comprometimento de Renda (DTI %)", 5.0, 75.0, 22.0, 1.0)
             delinq_in = st.selectbox(
@@ -448,10 +523,9 @@ with tab_scorecard:
             age_in = st.slider("Idade do Tomador", 18, 75, 36, 1)
 
             submit_eval = st.form_submit_button(
-                "⚡ Calcular Score FICO & Parecer", use_container_width=True
+                "Calcular Score FICO & Parecer", use_container_width=True
             )
 
-        # Monta proponente
         applicant_df = pd.DataFrame(
             [
                 {
@@ -475,34 +549,36 @@ with tab_scorecard:
         is_approved = ind_score >= cutoff_input
 
     with col_sim_output:
-        st.markdown("#### 🎯 Parecer da Esteira de Concessão")
+        st.markdown("#### Parecer da Esteira")
 
-        # Gauge Chart com Score FICO
+        # Gauge Chart Minimalista e Sóbrio
         fig_gauge = go.Figure(
             go.Indicator(
-                mode="gauge+number+delta",
+                mode="gauge+number",
                 value=ind_score,
                 domain={"x": [0, 1], "y": [0, 1]},
-                title={"text": "Score FICO Calculado", "font": {"size": 22}},
-                delta={
-                    "reference": cutoff_input,
-                    "increasing": {"color": "#10b981"},
-                    "decreasing": {"color": "#ef4444"},
+                title={
+                    "text": "Score FICO Calculado",
+                    "font": {"size": 16, "color": "#cbd5e1"},
                 },
                 gauge={
-                    "axis": {"range": [300, 850], "tickwidth": 1, "tickcolor": "white"},
-                    "bar": {"color": "#38bdf8", "thickness": 0.25},
-                    "bgcolor": "rgba(0,0,0,0)",
+                    "axis": {
+                        "range": [300, 850],
+                        "tickwidth": 1,
+                        "tickcolor": "#64748b",
+                    },
+                    "bar": {"color": COLOR_PRIMARY, "thickness": 0.25},
+                    "bgcolor": "rgba(255, 255, 255, 0.02)",
                     "borderwidth": 1,
-                    "bordercolor": "gray",
+                    "bordercolor": "#334155",
                     "steps": [
-                        {"range": [300, 480], "color": "rgba(239, 68, 68, 0.4)"},
-                        {"range": [480, 580], "color": "rgba(245, 158, 11, 0.4)"},
-                        {"range": [580, 700], "color": "rgba(56, 189, 248, 0.4)"},
-                        {"range": [700, 850], "color": "rgba(16, 185, 129, 0.4)"},
+                        {"range": [300, 480], "color": "rgba(251, 113, 133, 0.15)"},
+                        {"range": [480, 580], "color": "rgba(251, 191, 36, 0.15)"},
+                        {"range": [580, 700], "color": "rgba(56, 189, 248, 0.15)"},
+                        {"range": [700, 850], "color": "rgba(52, 211, 153, 0.15)"},
                     ],
                     "threshold": {
-                        "line": {"color": "#ffffff", "width": 4},
+                        "line": {"color": "#f8fafc", "width": 3},
                         "thickness": 0.8,
                         "value": cutoff_input,
                     },
@@ -513,29 +589,32 @@ with tab_scorecard:
             template="plotly_dark",
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
-            height=280,
-            margin={"l": 20, "r": 20, "t": 40, "b": 20},
+            height=260,
+            margin={"l": 20, "r": 20, "t": 30, "b": 20},
+            font={"color": "#f8fafc", "family": "sans-serif"},
         )
         st.plotly_chart(fig_gauge, use_container_width=True)
 
-        status_class = "badge-approved" if is_approved else "badge-rejected"
+        container_class = (
+            "badge-approved-container" if is_approved else "badge-rejected-container"
+        )
         status_text = (
-            "APROVADO PELA POLÍTICA"
+            "APROVADO PELA POLÍTICA DE CRÉDITO"
             if is_approved
             else "REPROVADO POR POLÍTICA DE RISCO"
         )
-        status_color = "#10b981" if is_approved else "#ef4444"
+        status_color = COLOR_GOOD if is_approved else COLOR_BAD
 
         st.markdown(
             f"""
-            <div class="metric-card" style="border-left: 5px solid {status_color};">
-                <div style="font-size: 1.2rem; font-weight: 700; color: {status_color}; margin-bottom: 8px;">
+            <div class="status-badge-container {container_class}">
+                <div style="font-size: 1.05rem; font-weight: 600; color: {status_color}; margin-bottom: 8px;">
                     {status_text}
                 </div>
-                <div style="font-size: 0.95rem; color: #cbd5e1;">
-                    • <b>Score FICO:</b> {ind_score} pontos (Nota de Corte: {cutoff_input})<br/>
+                <div style="font-size: 0.88rem; color: #94a3b8; line-height: 1.6;">
+                    • <b>Score Individual:</b> {ind_score} pontos (Nota de Corte: {cutoff_input})<br/>
                     • <b>Probabilidade de Default (PD):</b> {ind_pd:.2f}%<br/>
-                    • <b>Risco Relativo:</b> {"Baixo Risco (Prime)" if ind_score >= 680 else ("Risco Moderado" if ind_score >= 540 else "Alto Risco (Subprime)")}<br/>
+                    • <b>Rating de Risco:</b> {"Prime (Baixo Risco)" if ind_score >= 680 else ("Moderado" if ind_score >= 540 else "Subprime (Alto Risco)")}<br/>
                     • <b>LGD Estimada:</b> {lgd_input:.0f}%
                 </div>
             </div>
@@ -544,7 +623,7 @@ with tab_scorecard:
         )
 
     st.markdown("---")
-    st.subheader("Tabela de Regras e Pontuação do Scorecard FICO")
+    st.subheader("Dicionário de Regras de Pontuação do Scorecard FICO")
     rules_df = scorecard_model.get_scorecard_dataframe()
     st.dataframe(rules_df, use_container_width=True, hide_index=True)
 
@@ -553,12 +632,10 @@ with tab_scorecard:
 # ABA 3: VALIDAÇÃO DISCRIMINATÓRIA (K-S & ROC/AUC)
 # ==============================================================================
 with tab_metrics:
-    st.subheader("Avaliação Estatística de Discriminação & Qualidade do Modelo")
+    st.subheader("Validação Estatística de Discriminação")
     st.markdown(
-        "A qualidade de um scorecard de crédito é validada principalmente por duas métricas consagradas pelo comitê de Basileia:  \n"
-        "1. **Estatística Kolmogorov-Smirnov ($K\\text{-}S$):** Mede a separação máxima entre a função de distribuição acumulada "
-        "dos bons pagadores e dos maus pagadores ($K\\text{-}S = \\max |F_{Bads}(s) - F_{Goods}(s)|$).  \n"
-        "2. **Curva ROC e Coeficiente Gini:** A área sob a curva ROC ($AUC$) e a transformação linear $Gini = 2 \\cdot AUC - 1$."
+        "A capacidade de separação do modelo é mensurada pela estatística de Kolmogorov-Smirnov (K-S) "
+        "e pela curva Receiver Operating Characteristic (ROC), em conformidade com as recomendações de Basileia II."
     )
 
     c_m1, c_m2, c_m3, c_m4 = st.columns(4)
@@ -566,21 +643,23 @@ with tab_metrics:
         st.metric(
             "Estatística K-S",
             f"{perf_metrics.ks_stat:.1f}%",
-            f"Corte de Máx. Separação: {perf_metrics.max_ks_score} pts",
+            f"Corte de Máxima Separação: {perf_metrics.max_ks_score} pts",
         )
     with c_m2:
         st.metric(
-            "Coeficiente Gini", f"{perf_metrics.gini:.1f}%", "Padrão de Mercado > 45%"
+            "Coeficiente Gini",
+            f"{perf_metrics.gini:.1f}%",
+            "Referência de Mercado > 45%",
         )
     with c_m3:
         st.metric(
             "Área sob a Curva (ROC-AUC)",
             f"{perf_metrics.auc:.3f}",
-            "Excelente Discriminação",
+            "Forte Discriminação",
         )
     with c_m4:
         st.metric(
-            "Bad Rate Global (População)",
+            "Bad Rate Global da Amostra",
             f"{df_raw['default'].mean() * 100:.1f}%",
             "45.000 proponentes",
         )
@@ -592,7 +671,6 @@ with tab_metrics:
         ks_table = perf_metrics.ks_curve_data
         fig_ks = go.Figure()
 
-        # Eixo x como o score médio da faixa
         x_scores = [
             round(val) if not np.isnan(val) else 500 for val in ks_table["mean_score"]
         ]
@@ -603,7 +681,7 @@ with tab_metrics:
                 y=ks_table["cum_bads_pct"],
                 mode="lines+markers",
                 name="CDF Inadimplentes (Bads)",
-                line={"color": "#ef4444", "width": 3},
+                line={"color": COLOR_BAD, "width": 2.5},
             )
         )
         fig_ks.add_trace(
@@ -612,34 +690,27 @@ with tab_metrics:
                 y=ks_table["cum_goods_pct"],
                 mode="lines+markers",
                 name="CDF Bons Pagadores (Goods)",
-                line={"color": "#10b981", "width": 3},
+                line={"color": COLOR_GOOD, "width": 2.5},
             )
         )
 
-        # Linha vertical do K-S Máximo
         fig_ks.add_vline(
             x=perf_metrics.max_ks_score,
             line_dash="dash",
-            line_color="#f59e0b",
-            annotation_text=f"K-S = {perf_metrics.ks_stat:.1f}% ({perf_metrics.max_ks_score} pts)",
+            line_color=COLOR_WARNING,
+            annotation_text=f"K-S = {perf_metrics.ks_stat:.1f}%",
             annotation_position="top left",
+            annotation_font={"color": COLOR_WARNING, "size": 11},
         )
 
-        fig_ks.update_layout(
+        apply_modern_layout(
+            fig_ks,
             title="Curvas de Distribuição Acumulada & Kolmogorov-Smirnov (K-S)",
-            template="plotly_dark",
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
+            height=380,
+        )
+        fig_ks.update_layout(
             xaxis_title="Score de Crédito FICO",
             yaxis_title="% Acumulado da População",
-            height=380,
-            legend={
-                "orientation": "h",
-                "yanchor": "bottom",
-                "y": 1.02,
-                "xanchor": "right",
-                "x": 1,
-            },
         )
         st.plotly_chart(fig_ks, use_container_width=True)
 
@@ -653,9 +724,9 @@ with tab_metrics:
                 y=roc_data["tpr"],
                 mode="lines",
                 name=f"Scorecard FICO (AUC = {perf_metrics.auc:.3f})",
-                line={"color": "#38bdf8", "width": 3},
+                line={"color": COLOR_SECONDARY, "width": 2.5},
                 fill="tozeroy",
-                fillcolor="rgba(56, 189, 248, 0.15)",
+                fillcolor="rgba(56, 189, 248, 0.08)",
             )
         )
         fig_roc.add_trace(
@@ -664,24 +735,17 @@ with tab_metrics:
                 y=[0, 1],
                 mode="lines",
                 name="Baseline Aleatório (AUC = 0.500)",
-                line={"color": "#64748b", "dash": "dash"},
+                line={"color": "#475569", "dash": "dash", "width": 1.5},
             )
         )
-        fig_roc.update_layout(
+        apply_modern_layout(
+            fig_roc,
             title=f"Curva ROC & Discriminação (Gini = {perf_metrics.gini:.1f}%)",
-            template="plotly_dark",
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
+            height=380,
+        )
+        fig_roc.update_layout(
             xaxis_title="Taxa de Falso Positivo (FPR)",
             yaxis_title="Taxa de Verdadeiro Positivo (TPR / Recall)",
-            height=380,
-            legend={
-                "orientation": "h",
-                "yanchor": "bottom",
-                "y": 1.02,
-                "xanchor": "right",
-                "x": 1,
-            },
         )
         st.plotly_chart(fig_roc, use_container_width=True)
 
@@ -690,13 +754,12 @@ with tab_metrics:
 # ABA 4: SIMULADOR TÁTICO WHAT-IF (P&L & GESTÃO DE RISCO)
 # ==============================================================================
 with tab_simulator:
-    st.subheader("Fronteira Eficiente de Concessão de Crédito & Gestão de P&L")
+    st.subheader("Fronteira de Concessão de Crédito & Gestão de P&L")
     st.markdown(
-        "Ajuste e visualize a curva de sensibilidade entre volume aprovado, inadimplência esperada e lucratividade líquida. "
-        "A nota de corte ideal maximiza o lucro da esteira equilibrando receita de juros contra a Perda Esperada ($EL$)."
+        "Avaliação tática da sensibilidade entre volume aprovado, inadimplência da carteira e margem financeira líquida. "
+        "A definição do ponto de corte equilibra a geração de receita de juros contra a Perda Esperada (EL)."
     )
 
-    # Gera fronteira para os parâmetros atuais
     frontier_df = sim_engine.generate_cutoff_frontier(
         min_cutoff=360,
         max_cutoff=740,
@@ -705,7 +768,6 @@ with tab_simulator:
         avg_ticket=ticket_input,
     )
 
-    # Gráfico Duplo de Fronteira: Aprovação vs Bad Rate e Lucro Líquido
     fig_front = go.Figure()
     fig_front.add_trace(
         go.Scatter(
@@ -713,7 +775,7 @@ with tab_simulator:
             y=frontier_df["Taxa Aprovação (%)"],
             mode="lines+markers",
             name="Taxa de Aprovação (%)",
-            line={"color": "#10b981", "width": 2.5},
+            line={"color": COLOR_GOOD, "width": 2},
         )
     )
     fig_front.add_trace(
@@ -722,7 +784,7 @@ with tab_simulator:
             y=frontier_df["Bad Rate (%)"],
             mode="lines+markers",
             name="Bad Rate Safra (%)",
-            line={"color": "#ef4444", "width": 2.5},
+            line={"color": COLOR_BAD, "width": 2},
         )
     )
     fig_front.add_trace(
@@ -732,39 +794,38 @@ with tab_simulator:
             mode="lines+markers",
             name="Margem Líquida (R$ M)",
             yaxis="y2",
-            line={"color": "#38bdf8", "width": 3, "dash": "dot"},
+            line={"color": COLOR_PRIMARY, "width": 2.5, "dash": "dot"},
         )
     )
 
-    # Ponto de corte atualmente ativo
     fig_front.add_vline(
         x=cutoff_input,
         line_dash="dash",
-        line_color="#ffffff",
+        line_color="#f8fafc",
         annotation_text=f"Corte Ativo: {cutoff_input} pts",
         annotation_position="top left",
+        annotation_font={"color": "#f8fafc", "size": 11},
     )
 
-    fig_front.update_layout(
-        title="Curva de Trade-off de Concessão: Volume vs Qualidade vs Margem",
-        template="plotly_dark",
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        xaxis_title="Nota de Corte (Cut-off Score)",
-        yaxis={"title": "Percentual (%)"},
-        yaxis2={"title": "Margem Líquida (R$ M)", "overlaying": "y", "side": "right"},
+    apply_modern_layout(
+        fig_front,
+        title="Trade-off de Concessão: Volume vs Qualidade vs Margem Líquida",
         height=420,
-        legend={
-            "orientation": "h",
-            "yanchor": "bottom",
-            "y": 1.02,
-            "xanchor": "right",
-            "x": 1,
+    )
+    fig_front.update_layout(
+        xaxis_title="Nota de Corte (Cut-off Score)",
+        yaxis={"title": "Percentual (%)", "gridcolor": "rgba(255,255,255,0.05)"},
+        yaxis2={
+            "title": "Margem Líquida (R$ M)",
+            "overlaying": "y",
+            "side": "right",
+            "showgrid": False,
+            "tickfont": {"color": COLOR_PRIMARY},
         },
     )
     st.plotly_chart(fig_front, use_container_width=True)
 
-    st.write("#### Tabela de Sensibilidade em Múltiplos Pedaços de Corte")
+    st.markdown("#### Tabela de Sensibilidade em Múltiplos Pontos de Corte")
     st.dataframe(frontier_df, use_container_width=True, hide_index=True)
 
 
@@ -792,7 +853,7 @@ with tab_methodology:
 
         $$\\ln(\\text{Odds}) = \\beta_0 + \\sum_{j=1}^{p} \\beta_j \\cdot \\text{WoE}_j, \\quad \\text{onde } \\text{Odds} = \\frac{1-p}{p}$$
 
-        A escala FICO é calibrada através dos parâmetros:
+        A calibração na escala FICO é estruturada através dos parâmetros:
         - **Factor:** $\\text{Factor} = \\frac{\\text{PDO}}{\\ln(2)}$
         - **Offset:** $\\text{Offset} = \\text{Target Score} - \\text{Factor} \\cdot \\ln(\\text{Target Odds})$
         - **Score Final:** $\\text{Score} = \\text{Offset} + \\text{Factor} \\cdot \\ln(\\text{Odds})$
@@ -800,19 +861,19 @@ with tab_methodology:
         ---
 
         ### 3. Gestão de Risco & Perda Esperada (Expected Loss)
-        O provisionamento e impacto contábil de crédito segue as diretrizes de **Basileia II / IFRS 9**:
+        O provisionamento e apuração contábil seguem os preceitos de **Basileia II / IFRS 9**:
 
         $$\\text{EL} = \\text{PD} \\times \\text{LGD} \\times \\text{EAD}$$
 
         Onde:
         - $\\text{PD}$ (*Probability of Default*): Estimada pelo modelo estatístico.
-        - $\\text{LGD}$ (*Loss Given Default*): Percentual de perda efetiva após esforços de recuperação (ex: 65%).
+        - $\\text{LGD}$ (*Loss Given Default*): Percentual de perda efetiva após esforços de recuperação judicial e amigável.
         - $\\text{EAD}$ (*Exposure at Default*): Saldo devedor exposto no momento do inadimplemento.
         """
     )
 
 st.markdown("---")
 st.caption(
-    "© 2026 Renan Nocelli. Projeto Integrante do Portfólio de Ciência de Dados e Modelagem Estatística: "
+    "Renan Nocelli. Projeto integrante do Portfólio de Ciência de Dados e Modelagem Estatística: "
     "[renan-nocelli.vercel.app/projetos/credit-scoring-risco-credito](https://renan-nocelli.vercel.app/projetos/credit-scoring-risco-credito)"
 )
